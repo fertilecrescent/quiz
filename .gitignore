@@ -1,1 +1,4 @@
-*.txt
+.gitignore
+.env
+notes
+/node_modules

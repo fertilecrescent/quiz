@@ -1,0 +1,28 @@
+{
+  "name": "quiz",
+  "version": "1.0.0",
+  "description": "A web app for making quizzes",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "run": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fertilecrescent/quiz.git"
+  },
+  "author": "brandon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fertilecrescent/quiz/issues"
+  },
+  "homepage": "https://github.com/fertilecrescent/quiz#readme",
+  "devDependencies": {
+    "jest": "^29.4.3",
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "mongoose": "^6.10.0"
+  }
+}
