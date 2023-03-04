@@ -1,22 +1,16 @@
 const mongoose = require('mongoose')
 
 const quizSchema = new mongoose.Schema({
-    questions: [String],
-    answer: String,
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }
-})
-
-quizSchema.post('save', () => {
-    this.populate('user').then((quiz, err) => {
-        if (err) { return err }
-        quiz.user.quizzes.push(quiz._id)
-        quiz.save().then()
-    }).then((_, err) => {
-        if (err) { return err }
-    })
+        ref: 'User',
+        required: true
+    },
+    questions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Question',
+        default: []
+    }]
 })
 
 quizSchema.set('toJSON', function(_, obj) {

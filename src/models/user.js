@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const Quiz = require('./quiz')
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -14,13 +13,6 @@ const userSchema = new mongoose.Schema({
         ref: 'Quiz',
         default: []
     }]
-})
-
-userSchema.pre('deleteOne', function(next) {
-    Quiz.deleteMany({user: this._id}).then((_, err) => {
-        if (err) {next(err)}
-        else {next()}
-    })
 })
 
 userSchema.set('toJSON', {
