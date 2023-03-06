@@ -1,16 +1,15 @@
-const express = require('express')
-const User = require('../models/user.js')
+const loginRouter = require('express').Router()
+require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-require('dotenv').config()
+const User = require('../models/user.js')
 
-const loginRouter = express.Router()
 
 loginRouter.post('/', (req, res) => {
     const {username, password} = req.body
     User.findOne({username: username}).then(async (user, err) => {
         
-        if (err) {res.status(500).send()}
+        if (err) {return res.status(500).send()}
         if (!user) {
             return res.status(401).send({'error': 'invalid username or password'})
         }

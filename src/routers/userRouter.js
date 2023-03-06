@@ -24,4 +24,6 @@ userRouter.post('/', async (req, res) => {
     })
 })
 
+// userRouter.delete('/:id')
+
 module.exports = userRouter
