@@ -41,7 +41,26 @@ quizRouter.get('/:id', (req, res) => {
 })
 
 
-// quizRouter.post('/:name')
+quizRouter.post('/', (req, res) => {
+    const {token, name, questions} = req.body
+    jwt.verify(token, process.env.SECRET, (err, decoded) => {
+        if (err) {return res.send(401).json({'error': 'token invalid'})}
+        else {
+            Quiz.create({
+                user: decoded.id,
+                name: name,
+                questions: questions
+            }).then((quiz, err) => {
+                if (err) {res.status(500).send()}
+                else {
+                    return res.status(200).json({quiz})
+                }
+            })
+        }
+    })
+})
+
+// quizRouter.post('/question')
 // quizRouter.delete('/:id')
 
 module.exports = quizRouter
