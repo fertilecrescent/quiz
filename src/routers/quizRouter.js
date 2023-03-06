@@ -1,9 +1,7 @@
 const quizRouter = require('express').Router()
 require('dotenv').config()
-const User = require('../models/user.js')
 const Quiz = require('../models/quiz.js')
 const jwt = require('jsonwebtoken')
-const e = require('express')
 
 quizRouter.get('/all-names', (req, res) => {
     const {token} = req.body
@@ -60,7 +58,29 @@ quizRouter.post('/', (req, res) => {
     })
 })
 
-// quizRouter.post('/question')
+quizRouter.post('/question', (req, res) => {
+    const {token, question, quizId} = req.body
+    jwt.verify(token, process.env.SECRET, function(err, decoded) {
+        if (err) {return res.status(200).send()}
+        else {
+            Quiz.findById(quizId).then((quiz, err) => {
+                if (err) {return err}
+                else {
+                    quiz.questions.push(question)
+                    return quiz.save()
+                }
+            }).then((quiz, err) => {
+                if (err) {res.status(500).send()}
+                else {
+                    return res.status(200).json({quiz})
+                }
+            })
+        }
+    })
+})
+
+// quizRouter.post('/choice')
+// quizRouter.delete('/choice')
 // quizRouter.delete('/:id')
 
 module.exports = quizRouter
