@@ -1,5 +1,11 @@
 const mongoose = require('mongoose')
 
+const questionSchema = new mongoose.Schema({
+    question: String,
+    choices: [String],
+    answer: String
+})
+
 const quizSchema = new mongoose.Schema({
     name: String,
     user: {
@@ -7,11 +13,10 @@ const quizSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    questions: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Question',
+    questions: {
+        type: [questionSchema],
         default: []
-    }]
+    }
 })
 
 quizSchema.set('toJSON', function(_, obj) {
