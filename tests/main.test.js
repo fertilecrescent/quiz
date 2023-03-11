@@ -269,6 +269,23 @@ test('POST /quiz', async () => {
             })
 })
 
+test('DELETE /quiz', async () => {
+    const {token, phil} = await loginPhil()
+    const quiz = await Quiz.create({
+        name: 'arithmetic',
+        user: phil._id
+    })
+    
+    await api.
+        delete(`/quiz/${quiz._id}`).
+        send({token: token}).
+        expect(200)
+    
+    const quizzes = await Quiz.find({})
+
+    expect(quizzes.length).toBe(0)
+})
+
 test('POST /quiz/question', async () => {
     const {token, phil} = await loginPhil()
 
@@ -301,22 +318,39 @@ test('POST /quiz/question', async () => {
                 expect(quiz.name).toBe('arithmetic')
                 expect(quiz.questions[0].question).toBe('What is 2+2?')
                 expect(quiz.questions[1].question).toBe('What is 4+4?')
+                console.log(quiz)
             })
 })
 
-test('DELETE /quiz', async () => {
-    const {token, phil} = await loginPhil()
-    const quiz = await Quiz.create({
-        name: 'arithmetic',
-        user: phil._id
-    })
-    
-    await api.
-        delete(`/quiz/${quiz._id}`).
-        send({token: token}).
-        expect(200)
-    
-    const quizzes = await Quiz.find({})
+test('DELETE /quiz/question', async () => {
+    const {phil, token} = await loginPhil()
 
-    expect(quizzes.length).toBe(0)
+    const q1 = {
+        question: 'What is 2+2?',
+        choices: ['0', '2', '4', '8'],
+        answer: '4'
+    }
+
+
+    const q2 = {
+        question: 'What is 4+4?',
+        choices: ['0', '2', '4', '8'],
+        answer: '8'
+    }
+
+    const quiz = await Quiz.create({
+        user: phil._id,
+        questions: [q1, q2]
+    })
+
+    console.log(`/quiz/question/${quiz.questions[0]._id}`, 'url')
+
+    await api
+            .delete(`/quiz/question/${quiz.questions[0]._id}`)
+            .send({token, quizId: quiz._id, questionId: q1._id})
+            .expect(200)
+    
+    const updatedQuiz = await Quiz.findOne({_id: quiz._id})
+    expect(updatedQuiz.questions.length).toBe(1)
+    expect(updatedQuiz.questions[0].question).toBe('What is 4+4?')
 })

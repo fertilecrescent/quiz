@@ -92,7 +92,22 @@ quizRouter.post('/question', (req, res) => {
     })
 })
 
-// quizRouter.delete('/question')
+quizRouter.delete('/question/:id', (req, res) => {
+    const questionId = req.params.id
+    console.log(questionId, 'question id')
+    const {token, quizId} = req.body
+    jwt.verify(token, process.env.SECRET, (err, _) => {
+        if (err) {res.status(401).json({'error': 'token invalid'})}
+        else {
+            Quiz.updateOne({_id: quizId}, {$pull: {questions: {_id: questionId}}}).then((quiz, err) => {
+                if (err) {res.status(500).send()}
+                else {res.status(200).send()}
+            })
+        }
+    })
+})
+
+
 // quizRouter.post('/choice')
 // quizRouter.delete('/choice')
 
