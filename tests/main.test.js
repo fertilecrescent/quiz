@@ -14,6 +14,28 @@ const api = supertest(app)
 
 mongoose.set('strictQuery', true)
 
+async function createPhil() {
+    const passwordHash = await bcrypt.hash('abc123', 10)
+    const phil =  await User.create({
+        username: 'dragonMaster',
+        name: 'Phil',
+        passwordHash: passwordHash
+    })
+    return phil
+}
+
+async function loginPhil() {
+    const phil = await createPhil()
+    let token
+    await api
+            .post('/login')
+            .send({username: phil.username, password: 'abc123'})
+            .then((response, _) => {
+                token = response.body['token']
+            })
+    return {token, phil}
+}
+
 beforeAll(async () => {
     await connectToDB()
     await User.deleteMany({})
@@ -22,6 +44,7 @@ beforeAll(async () => {
 })
 
 afterEach(async () => {
+    console.log('testing...')
     await User.deleteMany({})
     await Quiz.deleteMany({})
     await Question.deleteMany({})
@@ -61,12 +84,12 @@ test('usernames must be unique', async () => {
     expect(saveErr.code).toBe(11000)
 })
 
-test('login', async () => {
+test('POST /login', async () => {
 
     const password = 'abc123'
     const passwordHash = await bcrypt.hash(password, 10)
 
-    User.create({
+    await User.create({
         username: 'dragonMaster',
         name: 'Phil',
         passwordHash: passwordHash
@@ -109,7 +132,7 @@ test('login', async () => {
             })
 })
 
-test('create new user', async () => {
+test('POST /user', async () => {
     // create a user
     await api.
             post('/user').
@@ -135,5 +158,141 @@ test('create new user', async () => {
             expect(400).
             then((response) => {
                 expect(response.body['error']).toBe('username is taken')
+            })
+})
+
+test('GET quiz/all-names', async () => {
+
+    const {phil, token} = await loginPhil()
+
+    await Quiz.create({
+        name: 'math',
+        user: phil._id
+    })
+    await Quiz.create({
+        name: 'animals',
+        user: phil._id
+    })
+    await Quiz.create({
+        name: 'geography',
+        user: phil._id
+    })
+
+    await api
+            .get('/quiz/all-names')
+            .send({token})
+            .expect(200)
+            .then((response, _) => {
+                expect(response.body.names.length).toBe(3)
+                expect(response.body.names.includes('math')).toBe(true)
+                expect(response.body.names.includes('animals')).toBe(true)
+                expect(response.body.names.includes('geography')).toBe(true)
+            })
+})
+
+test('GET /quiz', async () => {
+    const {phil, token} = await loginPhil()
+
+    const quiz = new Quiz({
+        name: 'arithmetic',
+        user: phil._id
+    })
+
+    const q1 = {
+        question: 'What is 2+2?',
+        choices: ['0', '2', '4', '8'],
+        answer: '4'
+    }
+    
+    const q2 = {
+        question: 'What is 4+4?',
+        choices: ['0', '2', '4', '8'],
+        answer: '8'
+    }
+        
+    const q3 = {
+        question: 'What is 1+1?',
+        choices: ['0', '2', '4', '8'],
+        answer: '2'
+    }
+
+    quiz.questions.push(...[q1, q2, q3])
+    await quiz.save()
+
+    await api
+            .get('/quiz/' + quiz._id)
+            .send({token})
+            .expect(200)
+            .then((response) => {
+                const quiz = response.body.quiz
+                expect(quiz.name).toBe('arithmetic')
+                expect(quiz.questions.length).toBe(3)
+                expect(quiz.questions[2].answer).toBe('2')
+            })
+})
+
+test('POST /quiz', async () => {
+    const {token} = await loginPhil()
+
+    const q1 = {
+        question: 'What is 2+2?',
+        choices: ['0', '2', '4', '8'],
+        answer: '4'
+    }
+    
+    const q2 = {
+        question: 'What is 4+4?',
+        choices: ['0', '2', '4', '8'],
+        answer: '8'
+    }
+        
+    const q3 = {
+        question: 'What is 1+1?',
+        choices: ['0', '2', '4', '8'],
+        answer: '2'
+    }
+
+    const requestBody = {
+        token: token,
+        name: 'arithmetic',
+        questions: [q1, q2, q3]
+    }
+
+    await api
+            .post('/quiz')
+            .send(requestBody)
+            .expect(200)
+            .then((response) => {
+                const quiz = response.body.quiz
+                expect(quiz.name).toBe('arithmetic')
+                expect(quiz.questions.length).toBe(3)
+                expect(quiz.questions[2].answer).toBe('2')
+            })
+})
+
+test('POST /quiz/question', async () => {
+    const {token, phil} = await loginPhil()
+
+    const quiz = await Quiz.create({
+        name: 'arithmetic',
+        user: phil._id
+    })
+
+    const question = {
+        question: 'What is 2+2?',
+        choices: ['0', '2', '4', '8'],
+        answer: '4'
+    }
+
+    const requestBody = {token, question, quizId: quiz._id}
+
+    await api
+            .post('/quiz/question')
+            .send(requestBody)
+            .expect(200)
+            .then((response) => {
+                const quiz = response.body.quiz
+                expect(quiz.name).toBe('arithmetic')
+                expect(quiz.questions[0].question).toBe('What is 2+2?')
             })
 })

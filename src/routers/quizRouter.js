@@ -60,7 +60,7 @@ quizRouter.post('/', (req, res) => {
 
 quizRouter.post('/question', (req, res) => {
     const {token, question, quizId} = req.body
-    jwt.verify(token, process.env.SECRET, function(err, decoded) {
+    jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {return res.status(200).send()}
         else {
             Quiz.findById(quizId).then((quiz, err) => {
@@ -79,8 +79,15 @@ quizRouter.post('/question', (req, res) => {
     })
 })
 
+
+quizRouter.delete('/:id', () => {
+    const {token} = req.body
+    jwt.verify(token, process.env.SECRET, func)
+})
+
+
 // quizRouter.post('/choice')
 // quizRouter.delete('/choice')
-// quizRouter.delete('/:id')
+
 
 module.exports = quizRouter
