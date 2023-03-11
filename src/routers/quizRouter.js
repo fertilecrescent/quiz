@@ -94,7 +94,6 @@ quizRouter.post('/question', (req, res) => {
 
 quizRouter.delete('/question/:id', (req, res) => {
     const questionId = req.params.id
-    console.log(questionId, 'question id')
     const {token, quizId} = req.body
     jwt.verify(token, process.env.SECRET, (err, _) => {
         if (err) {res.status(401).json({'error': 'token invalid'})}
@@ -108,7 +107,30 @@ quizRouter.delete('/question/:id', (req, res) => {
 })
 
 
-// quizRouter.post('/choice')
+quizRouter.post('/choice', (req, res) => {
+    const {quizId, questionId, choice, token} = req.body
+    console.log({quizId, questionId, choice, token})
+    jwt.verify(token, process.env.SECRET, (err, decoded) => {
+        console.log('aye????')
+        if (err) {res.status(401).json({'error': 'token invalid'})}
+        else {
+            console.log('aye?')
+            Quiz.findById(quizId).then((quiz, err) => {
+                if (err) {return err}
+                else {
+                    console.log(quiz, 'quiz')
+                    quiz.questions.id(questionId).choices.push(choice)
+                    console.log(quiz.questions, 'questions')
+                    return quiz.save()
+                }
+            }).then((quiz, err) => {
+                if (err) {res.status(500).send()}
+                else {res.status(200).json({question: quiz.questions.id(questionId)})}
+            })
+        }
+    })
+})
+
 // quizRouter.delete('/choice')
 
 module.exports = quizRouter

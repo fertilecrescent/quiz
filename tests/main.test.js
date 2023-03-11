@@ -331,7 +331,6 @@ test('DELETE /quiz/question', async () => {
         answer: '4'
     }
 
-
     const q2 = {
         question: 'What is 4+4?',
         choices: ['0', '2', '4', '8'],
@@ -353,4 +352,36 @@ test('DELETE /quiz/question', async () => {
     const updatedQuiz = await Quiz.findOne({_id: quiz._id})
     expect(updatedQuiz.questions.length).toBe(1)
     expect(updatedQuiz.questions[0].question).toBe('What is 4+4?')
+})
+
+test('POST /choice', async () => {
+    const {token, phil} = await loginPhil()
+
+    const q1 = {
+        question: 'What is 2+2?',
+        choices: ['0', '2', '4', '8'],
+        answer: '4'
+    }
+
+    const quiz = await Quiz.create({
+        user: phil._id,
+        questions: [q1]
+    })
+
+    const requestBody = {
+        quizId: quiz._id,
+        questionId: quiz.questions[0]._id,
+        choice: '10',
+        token
+    }
+
+    await api
+        .post('/quiz/choice')
+        .send(requestBody)
+        .expect(200)
+        .then((response) => {
+            const {question} = response.body
+            expect(question.choices.length).toBe(5)
+            expect(question.choices[4]).toBe('10')
+        })
 })
