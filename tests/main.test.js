@@ -6,13 +6,15 @@ const app = require('../src/app.js')
 
 const User = require('../src/models/user.js')
 const Quiz = require('../src/models/quiz.js')
-const Question = require('../src/models/question.js')
 
 const connectToDB = require('../src/utils/connectToDB.js')
 
 const api = supertest(app)
 
 mongoose.set('strictQuery', true)
+
+// can increase this value if internet is slow
+jest.setTimeout(5000)
 
 async function createPhil() {
     const passwordHash = await bcrypt.hash('abc123', 10)
@@ -40,20 +42,17 @@ beforeAll(async () => {
     await connectToDB()
     await User.deleteMany({})
     await Quiz.deleteMany({})
-    await Question.deleteMany({})
 })
 
 afterEach(async () => {
     console.log('testing...')
     await User.deleteMany({})
     await Quiz.deleteMany({})
-    await Question.deleteMany({})
 })
 
 afterAll(async () => {
     await User.deleteMany({})
     await Quiz.deleteMany({})
-    await Question.deleteMany({})
     await mongoose.connection.close()
 })
 
@@ -278,13 +277,20 @@ test('POST /quiz/question', async () => {
         user: phil._id
     })
 
-    const question = {
+    const q1 = {
         question: 'What is 2+2?',
         choices: ['0', '2', '4', '8'],
         answer: '4'
     }
 
-    const requestBody = {token, question, quizId: quiz._id}
+
+    const q2 = {
+        question: 'What is 4+4?',
+        choices: ['0', '2', '4', '8'],
+        answer: '8'
+    }
+
+    const requestBody = {token, questions: [q1, q2], quizId: quiz._id}
 
     await api
             .post('/quiz/question')
@@ -294,5 +300,23 @@ test('POST /quiz/question', async () => {
                 const quiz = response.body.quiz
                 expect(quiz.name).toBe('arithmetic')
                 expect(quiz.questions[0].question).toBe('What is 2+2?')
+                expect(quiz.questions[1].question).toBe('What is 4+4?')
             })
+})
+
+test('DELETE /quiz', async () => {
+    const {token, phil} = await loginPhil()
+    const quiz = await Quiz.create({
+        name: 'arithmetic',
+        user: phil._id
+    })
+    
+    await api.
+        delete(`/quiz/${quiz._id}`).
+        send({token: token}).
+        expect(200)
+    
+    const quizzes = await Quiz.find({})
+
+    expect(quizzes.length).toBe(0)
 })

@@ -58,15 +58,28 @@ quizRouter.post('/', (req, res) => {
     })
 })
 
+quizRouter.delete('/:id', (req, res) => {
+    const {token} = req.body
+    jwt.verify(token, process.env.SECRET, (err, _) => {
+        if (err) {res.status(401).json({'error': 'token invalid'})}
+        else {
+            Quiz.deleteOne({_id: req.params.id}).then((_, err) => {
+                if (err) {res.status(500).send()}
+                else {res.status(200).send()}
+            })
+        }
+    })
+})
+
 quizRouter.post('/question', (req, res) => {
-    const {token, question, quizId} = req.body
+    const {token, questions, quizId} = req.body
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
-        if (err) {return res.status(200).send()}
+        if (err) {return res.send(401).json({'error': 'token invalid'})}
         else {
             Quiz.findById(quizId).then((quiz, err) => {
                 if (err) {return err}
                 else {
-                    quiz.questions.push(question)
+                    quiz.questions.push(...questions)
                     return quiz.save()
                 }
             }).then((quiz, err) => {
@@ -79,15 +92,8 @@ quizRouter.post('/question', (req, res) => {
     })
 })
 
-
-quizRouter.delete('/:id', () => {
-    const {token} = req.body
-    jwt.verify(token, process.env.SECRET, func)
-})
-
-
+// quizRouter.delete('/question')
 // quizRouter.post('/choice')
 // quizRouter.delete('/choice')
-
 
 module.exports = quizRouter
