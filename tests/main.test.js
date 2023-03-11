@@ -219,8 +219,8 @@ test('GET /quiz', async () => {
     await quiz.save()
 
     await api
-            .get('/quiz/' + quiz._id)
-            .send({token})
+            .get('/quiz')
+            .send({token, id: quiz._id})
             .expect(200)
             .then((response) => {
                 const quiz = response.body.quiz
@@ -277,8 +277,8 @@ test('DELETE /quiz', async () => {
     })
     
     await api.
-        delete(`/quiz/${quiz._id}`).
-        send({token: token}).
+        delete(`/quiz`).
+        send({token: token, id: quiz._id}).
         expect(200)
     
     const quizzes = await Quiz.find({})
@@ -383,5 +383,37 @@ test('POST /choice', async () => {
             const {question} = response.body
             expect(question.choices.length).toBe(5)
             expect(question.choices[4]).toBe('10')
+        })
+})
+
+test('DELETE /choice', async () => {
+    const {token, phil} = await loginPhil()
+
+    const q1 = {
+        question: 'What is 2+2?',
+        choices: ['0', '2', '4', '8'],
+        answer: '4'
+    }
+
+    const quiz = await Quiz.create({
+        user: phil._id,
+        questions: [q1]
+    })
+
+    const requestBody = {
+        quizId: quiz._id,
+        questionId: quiz.questions[0]._id,
+        choice: '0',
+        token
+    }
+
+    await api
+        .delete('/quiz/choice')
+        .send(requestBody)
+        .expect(200)
+        .then((response) => {
+            const {question} = response.body
+            expect(question.choices.length).toBe(3)
+            expect(question.choices.includes(0)).toBe(false)
         })
 })
