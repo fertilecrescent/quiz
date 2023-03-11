@@ -189,6 +189,32 @@ test('GET quiz/all-names', async () => {
             })
 })
 
+test('DELETE /user', async () => {
+    const {phil, token} = await loginPhil()
+
+
+    await Quiz.create({
+        name: 'arithmetic',
+        user: phil._id
+    })
+
+    await Quiz.create({
+        name: 'arithmetic',
+        user: phil._id
+    })
+
+    await api
+            .delete('/user')
+            .send({token})
+            .expect(200)
+            .then(async () => {
+                const users = await User.find({})
+                expect(users.length).toBe(0)
+                const quizzes = await Quiz.find({})
+                expect(quizzes.length).toBe(0)
+            })
+})
+
 test('GET /quiz', async () => {
     const {phil, token} = await loginPhil()
 
