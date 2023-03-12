@@ -6,7 +6,10 @@ const User = require('../models/user.js')
 
 
 loginRouter.post('/', (req, res) => {
+    console.log('logging in')
+    console.log(req.body, 'body')
     const {username, password} = req.body
+    console.log(username, password, 'username password')
     User.findOne({username: username}).then(async (user, err) => {
         
         if (err) {return res.status(500).send()}
@@ -19,7 +22,7 @@ loginRouter.post('/', (req, res) => {
             return res.status(401).send({'error': 'invalid username or password'})
         } else {
             const token = jwt.sign({id: user._id}, process.env.SECRET)
-            return res.status(200).json({token})
+            res.status(200).send({token})
         }
     })
 })
