@@ -1,0 +1,13 @@
+doctype html
+html
+  head
+    title="Quiz App - Home"
+    link(rel="stylesheet", href="/home/home.css")
+  body
+    span(id="token")=token
+    ul
+        each quiz in quizzes
+            -var href = "/view/quiz/take/" + quiz.id
+            a(href=href)
+                li=quiz.name
+  script(src="/home/home.js") 

@@ -2,12 +2,16 @@ const quizRouter = require('express').Router()
 require('dotenv').config()
 const Quiz = require('../models/quiz.js')
 const jwt = require('jsonwebtoken')
+const parseToken = require('../utils/parseToken.js')
 
 quizRouter.get('/all-names', (req, res) => {
-    const {token} = req.body
+
+    const token = parseToken(req)
+
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {
-            return res.status(401).send({'error': 'invalid token'})
+            console.log(err, 'err')
+            return res.status(401).send({'error': 'token invalid'})
         }
         else {
             Quiz.find({user: decoded.id}).then((quizzes, err) => {
@@ -22,7 +26,8 @@ quizRouter.get('/all-names', (req, res) => {
 })
 
 quizRouter.get('/', (req, res) => {
-    const {token, id} = req.body
+    const token = parseToken(req)
+    const { id } = req.body
     jwt.verify(token, process.env.SECRET, (err, _) => {
         if (err) {
             return res.status(401).send({'error': 'invalid token'})
@@ -40,7 +45,8 @@ quizRouter.get('/', (req, res) => {
 
 
 quizRouter.post('/', (req, res) => {
-    const {token, name, questions} = req.body
+    const token = parseToken(req)
+    const {name, questions} = req.body
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {return res.send(401).json({'error': 'token invalid'})}
         else {
@@ -59,7 +65,8 @@ quizRouter.post('/', (req, res) => {
 })
 
 quizRouter.delete('/', (req, res) => {
-    const {token, id} = req.body
+    const token = parseToken(req)
+    const { id } = req.body
     jwt.verify(token, process.env.SECRET, (err, _) => {
         if (err) {return res.status(401).json({'error': 'token invalid'})}
         else {
@@ -72,7 +79,8 @@ quizRouter.delete('/', (req, res) => {
 })
 
 quizRouter.post('/question', (req, res) => {
-    const {token, questions, quizId} = req.body
+    const token = parseToken(req)
+    const {questions, quizId} = req.body
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {return res.send(401).json({'error': 'token invalid'})}
         else {
@@ -93,8 +101,9 @@ quizRouter.post('/question', (req, res) => {
 })
 
 quizRouter.delete('/question/:id', (req, res) => {
+    const token = parseToken(req)
     const questionId = req.params.id
-    const {token, quizId} = req.body
+    const { quizId } = req.body
     jwt.verify(token, process.env.SECRET, (err, _) => {
         if (err) {return res.status(401).json({'error': 'token invalid'})}
         else {
@@ -108,7 +117,8 @@ quizRouter.delete('/question/:id', (req, res) => {
 
 
 quizRouter.post('/choice', (req, res) => {
-    const {token, quizId, questionId, choice} = req.body
+    const token = parseToken(req)
+    const {quizId, questionId, choice} = req.body
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {return res.status(401).json({'error': 'token invalid'})}
         else {
@@ -127,7 +137,8 @@ quizRouter.post('/choice', (req, res) => {
 })
 
 quizRouter.delete('/choice', (req, res) => {
-    const {token, quizId, questionId, choice} = req.body
+    const token = parseToken(req)
+    const  {quizId, questionId, choice} = req.body
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {return res.status(400).json({'error': 'token invalid'})}
         else {

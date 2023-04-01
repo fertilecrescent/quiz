@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const User = require('../models/user.js')
 const Quiz = require('../models/quiz.js')
+const parseToken = require('../utils/parseToken.js')
 
 const userRouter = require('express').Router()
 
@@ -28,7 +29,7 @@ userRouter.post('/', async (req, res) => {
 })
 
 userRouter.delete('/', (req, res) => {
-    const { token } = req.body
+    const token = parseToken(req)
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         if (err) {return res.status(401).json({'error': 'token invalid'})}
         else {

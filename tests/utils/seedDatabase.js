@@ -14,29 +14,47 @@ connectToDB().then(async () => {
     philPasswordHash = hash
     await User.deleteMany({})
     await Quiz.deleteMany({})
-    await User.create({
+    const phil = await User.create({
         name: 'Phil',
         username: philUsername,
         passwordHash: philPasswordHash
     })
+    
+    await Quiz.create({
+        name: 'Arithmetic',
+        user: phil._id,
+        questions: [
+            {
+                question: '2+2?',
+                choices: ['2', '4', '6', '8'],
+                answer: '4'
+            },
+            {
+                question: '4+4?',
+                choices: ['2', '4', '6', '8'],
+                answer: '8'
+            }
+        ]
+    })
+
+    await Quiz.create({
+        name: 'Science',
+        user: phil._id,
+        questions: [
+            {
+                question: 'What sound does a cow make?',
+                choices: ['moo', 'ahh', 'quack', 'ow'],
+                answer: 'moo'
+            },
+            {
+                question: 'What sound does a duck make?',
+                choices: ['moo', 'ahh', 'quack', 'ow'],
+                answer: 'quack'
+            }
+        ]
+    })
+
+
+
     console.log('finished seeding database')
 })
-
-// connectToDB().then(() => {
-//     return bcrypt.hash(philPassword, 10)
-// }).
-// then((hash) => {
-//     philPasswordHash = hash
-// }).
-// then(() => {
-//     return User.deleteMany({})
-// }).
-// then(() => Quiz.deleteMany()).
-// then(() => {
-//     return User.create({
-//         name: 'Phil',
-//         username: philUsername,
-//         passwordHash: philPasswordHash
-//     })
-// }).
-// then(() => console.log('finished seeding database'))

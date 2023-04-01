@@ -5,11 +5,8 @@ const bcrypt = require('bcrypt')
 const User = require('../models/user.js')
 
 
-loginRouter.post('/', (req, res) => {
-    console.log('logging in')
-    console.log(req.body, 'body')
+loginRouter.get('/', (req, res) => {
     const {username, password} = req.body
-    console.log(username, password, 'username password')
     User.findOne({username: username}).then(async (user, err) => {
         
         if (err) {return res.status(500).send()}

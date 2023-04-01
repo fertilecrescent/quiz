@@ -38,6 +38,11 @@ async function loginPhil() {
     return {token, phil}
 }
 
+function setTokenHeader(headers, token) {
+    headers['Authorization'] = 'Bearer ' + token
+    return headers
+}
+
 beforeAll(async () => {
     await connectToDB()
     await User.deleteMany({})
@@ -179,7 +184,8 @@ test('GET quiz/all-names', async () => {
 
     await api
             .get('/quiz/all-names')
-            .send({token})
+            .set(setTokenHeader({}, token))
+            .send()
             .expect(200)
             .then((response, _) => {
                 expect(response.body.names.length).toBe(3)
@@ -205,7 +211,8 @@ test('DELETE /user', async () => {
 
     await api
             .delete('/user')
-            .send({token})
+            .set(setTokenHeader({}, token))
+            .send({id: phil._id})
             .expect(200)
             .then(async () => {
                 const users = await User.find({})
@@ -246,7 +253,8 @@ test('GET /quiz', async () => {
 
     await api
             .get('/quiz')
-            .send({token, id: quiz._id})
+            .set(setTokenHeader({}, token))
+            .send({id: quiz._id})
             .expect(200)
             .then((response) => {
                 const quiz = response.body.quiz
@@ -285,6 +293,7 @@ test('POST /quiz', async () => {
 
     await api
             .post('/quiz')
+            .set(setTokenHeader({}, token))
             .send(requestBody)
             .expect(200)
             .then((response) => {
@@ -304,7 +313,8 @@ test('DELETE /quiz', async () => {
     
     await api.
         delete(`/quiz`).
-        send({token: token, id: quiz._id}).
+        set(setTokenHeader({}, token)).
+        send({id: quiz._id}).
         expect(200)
     
     const quizzes = await Quiz.find({})
@@ -337,6 +347,7 @@ test('POST /quiz/question', async () => {
 
     await api
             .post('/quiz/question')
+            .set(setTokenHeader({}, token))
             .send(requestBody)
             .expect(200)
             .then((response) => {
@@ -372,7 +383,8 @@ test('DELETE /quiz/question', async () => {
 
     await api
             .delete(`/quiz/question/${quiz.questions[0]._id}`)
-            .send({token, quizId: quiz._id, questionId: q1._id})
+            .set(setTokenHeader({}, token))
+            .send({quizId: quiz._id, questionId: q1._id})
             .expect(200)
     
     const updatedQuiz = await Quiz.findOne({_id: quiz._id})
@@ -403,6 +415,7 @@ test('POST /choice', async () => {
 
     await api
         .post('/quiz/choice')
+        .set(setTokenHeader({}, token))
         .send(requestBody)
         .expect(200)
         .then((response) => {
@@ -435,6 +448,7 @@ test('DELETE /choice', async () => {
 
     await api
         .delete('/quiz/choice')
+        .set(setTokenHeader({}, token))
         .send(requestBody)
         .expect(200)
         .then((response) => {
