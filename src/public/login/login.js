@@ -7,11 +7,11 @@ loginForm.addEventListener('submit', (e) => {
     e.preventDefault()
     if (validateUserPass()) {
         checkIfUserPassExists()
-        .catch(() => {
-            alert('Invalid username or password')
-        })
         .then(() => {
-            window.location.href = '/view/home'
+            // window.location.href = '/view/home'
+        })
+        .catch((err) => {
+            alert(err.message)
         })
     }
 })
@@ -28,8 +28,8 @@ function validateUserPass() {
     }
 }
 
-function checkIfUserPassExists() {
-    fetch('/validateCredentials?' + new URLSearchParams({
+async function checkIfUserPassExists() {
+    return fetch('/login/validateCredentials?' + new URLSearchParams({
         username: usernameInput.value,
         password: passwordInput.value
     }))
@@ -39,9 +39,14 @@ function checkIfUserPassExists() {
     })
     .then(res => {
         if (!res.ok) {
-            return Promise.reject()
+            if (res.status == 500) {
+                throw new Error('There was an error on the server')
+            } 
+            else if (res.status == 401) {
+                throw new Error('Username or password is invalid')
+            }
         } else {
-            return true
+            return Promise.resolve()
         }
     })
 }

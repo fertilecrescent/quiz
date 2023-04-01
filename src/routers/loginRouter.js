@@ -24,4 +24,31 @@ loginRouter.get('/', (req, res) => {
     })
 })
 
+loginRouter.get('/validateCredentials', (req, res) => {
+    const { username, password } = req.query
+    User.findOne({username})
+    .catch(() => {res.status(500).send()})
+    .then((user) => {
+        if (!user) {
+            console.log('not valid username')
+            res.status(401).send() // user not found
+            return Promise.reject()
+        } else {
+            return user
+        }
+    })
+    .then((user) => {
+        return bcrypt.compare(password, user.passwordHash)
+    })
+    .catch(() => res.status(500).send())
+    .then((isValid) => {
+        if (isValid) {
+            res.status(200).send()
+        } else {
+            console.log('not valid password')
+            res.status(401).send() // password not valid
+        }
+    })
+})
+
 module.exports = loginRouter
