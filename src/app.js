@@ -1,4 +1,5 @@
 const express = require('express')
+const cookieParser = require('cookie-parser')
 const path = require('path')
 const rootRouter = require('./routers/rootRouter.js')
 const viewRouter = require('./routers/viewRouter')
@@ -13,6 +14,7 @@ app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
 app.use(express.json())
+app.use(cookieParser())
 app.use(express.static(path.join(__dirname + '/public')))
 app.use('/', rootRouter)
 app.use('/login', loginRouter)
