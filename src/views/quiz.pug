@@ -1,0 +1,7 @@
+doctype html
+mixin question(index, question, choices, answer)
+    div.question
+        h2=question
+        -answerId=#{answer+}
+        if choices.length == 0
+            input()

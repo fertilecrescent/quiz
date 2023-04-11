@@ -9,9 +9,8 @@ const quizRouter = require('./routers/quizRouter.js')
 
 const app = express()
 
-
-app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
+app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.json())
 app.use(cookieParser())

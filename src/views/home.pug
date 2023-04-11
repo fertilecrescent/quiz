@@ -7,7 +7,7 @@ html
     span(id="token")=token
     ul
         each quiz in quizzes
-            -var href = "/view/quiz/take/" + quiz.id
+            -var href = "/view/quiz/" + quiz.id
             a(href=href)
                 li=quiz.name
   script(src="/home/home.js") 

@@ -14,7 +14,7 @@ const quizSchema = new mongoose.Schema({
         required: true
     },
     questions: {
-        type: [questionSchema],
+        type: [mongoose.Schema.Types.Mixed],
         default: []
     }
 })

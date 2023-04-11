@@ -6,7 +6,6 @@ const User = require('../models/user.js')
 
 
 loginRouter.post('/', (req, res) => {
-    console.log('logging in ')
     const {username, password} = req.body
     User.findOne({username: username})
     .then(async (user) => {
@@ -16,8 +15,9 @@ loginRouter.post('/', (req, res) => {
             return bcrypt.compare(password, user.passwordHash)
             .then((passValid) => {
                 if (passValid) {
-                    const token = jwt.sign({id: user._id}, process.env.SECRET)
-                    res.status(200).cookie('token', token, {httpOnly: true}).send()
+                    jwt.sign({id: user._id}, process.env.SECRET, (_, token) => {
+                        res.status(200).cookie('token', token, {httpOnly: true}).send()
+                    })
                 } else {
                     res.status(401).send()
                 }

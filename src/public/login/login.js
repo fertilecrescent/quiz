@@ -8,6 +8,7 @@ loginForm.addEventListener('submit', (e) => {
     if (validateUserPass()) {
         login()
         .then(() => {
+            console.log('redirectin')
             window.location.href = '/view/home'
         })
     }
@@ -37,6 +38,7 @@ async function login() {
         })
     }
 
+    console.log('logging in')
     fetch('/login', options)
     .then((res) => {
         if (!res.ok) {
