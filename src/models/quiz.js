@@ -1,28 +1,35 @@
 const mongoose = require('mongoose')
 
-const questionSchema = new mongoose.Schema({
-    question: String,
-    choices: [String],
-    answer: String
-})
-
 const quizSchema = new mongoose.Schema({
-    name: String,
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
+    name: String,
     questions: {
-        type: [mongoose.Schema.Types.Mixed],
+        type: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question'
+        }],
         default: []
+    },
+    published: {
+        type: Boolean,
+        default: false
     }
 })
 
-quizSchema.set('toJSON', function(_, obj) {
-    obj.id = obj._id
-    delete obj._id
-    delete obj.__v
+quizSchema.pre('deleteOne', function() {
+    
+})
+
+quizSchema.set('toJSON', {
+    transform: (doc, obj) => {
+        obj.id = obj._id
+        delete obj._id
+        delete obj.__v
+    }
 })
 
 const Quiz = mongoose.model('Quiz', quizSchema)

@@ -4,26 +4,26 @@ const Quiz = require('../models/quiz.js')
 const jwt = require('jsonwebtoken')
 const parseToken = require('../utils/parseToken.js')
 
-quizRouter.get('/all-names', (req, res) => {
+// quizRouter.get('/all-names', (req, res) => {
 
-    const token = parseToken(req)
+//     const token = parseToken(req)
 
-    jwt.verify(token, process.env.SECRET, (err, decoded) => {
-        if (err) {
-            console.log(err, 'err')
-            return res.status(401).send({'error': 'token invalid'})
-        }
-        else {
-            Quiz.find({user: decoded.id}).then((quizzes, err) => {
-                if (err) {return res.status(500).send()}
-                else {
-                    const names = quizzes.map(quiz => quiz.name)
-                    return res.status(200).json({names})
-                }
-            })
-        }
-    })
-})
+//     jwt.verify(token, process.env.SECRET, (err, decoded) => {
+//         if (err) {
+//             console.log(err, 'err')
+//             return res.status(401).send({'error': 'token invalid'})
+//         }
+//         else {
+//             Quiz.find({user: decoded.id}).then((quizzes, err) => {
+//                 if (err) {return res.status(500).send()}
+//                 else {
+//                     const names = quizzes.map(quiz => quiz.name)
+//                     return res.status(200).json({names})
+//                 }
+//             })
+//         }
+//     })
+// })
 
 quizRouter.get('/', (req, res) => {
     const token = parseToken(req)
@@ -42,7 +42,6 @@ quizRouter.get('/', (req, res) => {
         }
     })
 })
-
 
 quizRouter.post('/', (req, res) => {
     const token = parseToken(req)

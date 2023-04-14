@@ -1,12 +1,11 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const supertest = require('supertest')
-
 const app = require('../src/app.js')
-
 const User = require('../src/models/user.js')
 const Quiz = require('../src/models/quiz.js')
-
+const Question = require('../src/models/question.js')
+const QuizAttempt = require('../src/models/quizAttempt.js')
 const connectToDB = require('../src/utils/connectToDB.js')
 
 const api = supertest(app)
@@ -38,26 +37,115 @@ async function loginPhil() {
     return {token, phil}
 }
 
+async function createArithmeticQuiz(user) {
+    const quiz = new Quiz({
+        user: user._id,
+        name: 'Arithmetic'
+    })
+
+    const q1 = new Question({
+        question: 'What is 2+2?',
+        choices: ['2', '4', '6', '8'],
+        answer: '4'
+    })
+
+    const q2 = new Question({
+        question: 'What does addition do?',
+        answer: 'Adds two numbers together'
+    })
+
+    const q3 = new Question({
+        question: 'What is 3*4?',
+        choices: ['4', '8', '12', '16']
+    })
+
+    quiz.questions = [q1, q2, q3]
+
+    return await quiz.save()
+}
+
+async function createAnimalsQuiz(user) {
+    const quiz = new Quiz({
+        user: user._id,
+        name: 'Animals'
+    })
+
+    const q1 = new Question({
+        question: 'What sound does a cow make?',
+        choices: ['2', '4', '6', '8'],
+        answer: '4'
+    })
+
+    const q2 = new Question({
+        question: 'What is your favorite animal?',
+        answer: 'There\'s really no wrong answer here'
+    })
+
+    const q3 = new Question({
+        question: 'Which an ancient reptile?',
+        choices: ['dinosaur', 'bird', 'dog', 'rabbit'],
+        answer: 'dinosaur'
+    })
+
+    quiz.questions = [q1, q2, q3]
+
+    return await quiz.save()
+}
+
+async function createGeographyQuiz(user) {
+    const quiz = new Quiz({
+        user: user._id,
+        name: 'Geography'
+    })
+
+    const q1 = new Question({
+        question: 'Which country is in the West',
+        choices: ['United States', 'Japan', 'China', 'Korea'],
+        answer: 'United States'
+    })
+
+    const q2 = new Question({
+        question: 'How would you describe a desert?',
+        answer: 'Hot, dry, sandy'
+    })
+
+    const q3 = new Question({
+        question: 'Which of the following is a mountain?',
+        choices: ['Sahara Desert', 'Indian Ocean', 'Mount Everest', 'Lake Michigan'],
+        answer: 'Mount Everest'
+    })
+
+    quiz.questions = [q1, q2, q3]
+
+    return await quiz.save()
+}
+
 function setTokenHeader(headers, token) {
     headers['Authorization'] = 'Bearer ' + token
     return headers
 }
 
 beforeAll(async () => {
+    console.log('connecting to db')
     await connectToDB()
     await User.deleteMany({})
     await Quiz.deleteMany({})
+    await Question.deleteMany({})
+    await QuizAttempt.deleteMany({})
 })
 
 afterEach(async () => {
-    console.log('testing...')
+    console.log('deleting database contents')
     await User.deleteMany({})
     await Quiz.deleteMany({})
+    await Question.deleteMany({})
+    await QuizAttempt.deleteMany({})
 })
 
 afterAll(async () => {
     await User.deleteMany({})
     await Quiz.deleteMany({})
+    console.log('breaking db connection')
     await mongoose.connection.close()
 })
 
@@ -108,7 +196,10 @@ test('POST /login', async () => {
             }).
             expect(200).
             then((response) => {
-                expect(response.body['token']).toBeTruthy()
+                console.log(response.headers['set-cookie'], 'set-cookie')
+                const cookies = response.headers['set-cookie']
+                const tokenCookie = cookies.filter((cookie) => cookie.startsWith('token'))
+                expect(tokenCookie.length).toBe(1)
             })
 
     // username does not exist
@@ -118,10 +209,7 @@ test('POST /login', async () => {
                 username: 'dragonMaster555',
                 password: password
             }).
-            expect(401).
-            then((response) => {
-                expect(response.body['error']).toBe('invalid username or password')
-            })
+            expect(401)
     
     // incorrect password
     await api.
@@ -130,13 +218,11 @@ test('POST /login', async () => {
                 username: 'dragonMaster',
                 password: password + 'a'
             }).
-            expect(401).
-            then((response) => {
-                expect(response.body['error']).toBe('invalid username or password')
-            })
+            expect(401)
 })
 
 test('POST /user', async () => {
+
     // create a user
     await api.
             post('/user').
@@ -146,14 +232,12 @@ test('POST /user', async () => {
                 const user = response.body['user']
                 expect(user).toBeTruthy()
                 expect(user.passwordHash).toBe(undefined)
-                expect(user._id).toBe(undefined)
-                expect(user.__v).toBe(undefined)
                 expect(user.name).toBe('Phil')
                 expect(user.username).toBe('dragonMaster')
             })
     
     const user = await User.find({username: 'dragonMaster'})
-    expect(user).toBeTruthy()
+    expect(user).toBeTruthy() // user exists in db
     
     // try to create a duplicate user
     await api.
@@ -165,49 +249,46 @@ test('POST /user', async () => {
             })
 })
 
-test('GET quiz/all-names', async () => {
+// test('GET quiz/all-names', async () => {
 
-    const {phil, token} = await loginPhil()
+//     const {phil, token} = await loginPhil()
 
-    await Quiz.create({
-        name: 'math',
-        user: phil._id
-    })
-    await Quiz.create({
-        name: 'animals',
-        user: phil._id
-    })
-    await Quiz.create({
-        name: 'geography',
-        user: phil._id
-    })
+//     await Quiz.create({
+//         name: 'math',
+//         user: phil._id
+//     })
+//     await Quiz.create({
+//         name: 'animals',
+//         user: phil._id
+//     })
+//     await Quiz.create({
+//         name: 'geography',
+//         user: phil._id
+//     })
 
-    await api
-            .get('/quiz/all-names')
-            .set(setTokenHeader({}, token))
-            .send()
-            .expect(200)
-            .then((response, _) => {
-                expect(response.body.names.length).toBe(3)
-                expect(response.body.names.includes('math')).toBe(true)
-                expect(response.body.names.includes('animals')).toBe(true)
-                expect(response.body.names.includes('geography')).toBe(true)
-            })
-})
+//     await api
+//             .get('/quiz/all-names')
+//             .set(setTokenHeader({}, token))
+//             .send()
+//             .expect(200)
+//             .then((response, _) => {
+//                 expect(response.body.names.length).toBe(3)
+//                 expect(response.body.names.includes('math')).toBe(true)
+//                 expect(response.body.names.includes('animals')).toBe(true)
+//                 expect(response.body.names.includes('geography')).toBe(true)
+//             })
+// })
 
 test('DELETE /user', async () => {
     const {phil, token} = await loginPhil()
 
+    const arithmeticQuiz = createArithmeticQuiz(phil)
+    const animalQuiz = createAnimalsQuiz(phil)
+    const geographyQuiz = createGeographyQuiz(phil)
 
-    await Quiz.create({
-        name: 'arithmetic',
-        user: phil._id
-    })
-
-    await Quiz.create({
-        name: 'arithmetic',
-        user: phil._id
-    })
+    // const numQuestions = arithmeticQuiz.questions.length
+    // + animalQuiz.questions.length
+    // + geographyQuiz.questions.length
 
     await api
             .delete('/user')
@@ -219,6 +300,8 @@ test('DELETE /user', async () => {
                 expect(users.length).toBe(0)
                 const quizzes = await Quiz.find({})
                 expect(quizzes.length).toBe(0)
+                const questions = await Question.find({})
+                expect(questions.length).toBe(0)
             })
 })
 

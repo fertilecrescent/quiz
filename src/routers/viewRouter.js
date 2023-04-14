@@ -13,14 +13,12 @@ viewRouter.get('/home', (req, res) => {
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
         console.log(decoded, 'decoded')
         if (err) {
-            console.log(err, 'err')
             return res.status(401).send('<h1>You are not authorized to view this page</h1>')
         } else {
             Quiz.find({user: decoded.id})
             .then((quizzes) => {
                 const quizData = quizzes.map((quiz) => {return {id: quiz._id, name: quiz.name}})
                 res.locals['quizzes'] = quizData
-                console.log('rendering home')
                 res.render('home')
             })
             .catch(() => {
