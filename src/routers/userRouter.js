@@ -28,21 +28,17 @@ userRouter.post('/', async (req, res) => {
     })
 })
 
-userRouter.delete('/', (req, res) => {
+userRouter.delete('/', async (req, res) => {
     const token = parseToken(req)
-    jwt.verify(token, process.env.SECRET, (err, decoded) => {
+    console.log('hello? 1')
+    jwt.verify(token, process.env.SECRET, async (err, decoded) => {
+        console.log('hello? 2')
         if (err) {return res.status(401).json({'error': 'token invalid'})}
         else {
-            Quiz.deleteMany({user: decoded.id}).then((_, err) => {
-                if (err) {return err}
-                else {
-                    return User.deleteOne({_id: decoded.id})
-                }
-            }).then((_, err) => {
-                console.log('hi?')
-                if (err) {return res.status(500).send()}
-                else {return res.status(200).send()}
-            })
+            console.log('hello? 3')
+            const user = await User.findById({_id: decoded.id})
+            await user.deleteOne()
+            res.status(200).send()
         }
     })
 })

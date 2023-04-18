@@ -6,13 +6,16 @@ const quizSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    name: String,
+    name: {
+        type: String,
+        required: true
+    },
     questions: {
         type: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Question'
         }],
-        default: []
+        required: true
     },
     published: {
         type: Boolean,
@@ -20,8 +23,16 @@ const quizSchema = new mongoose.Schema({
     }
 })
 
-quizSchema.pre('deleteOne', function() {
-    
+quizSchema.pre('save', async function() {
+    this
+    .populate('user')
+    .then(() => {
+        this.user.quizzes.push(this._id)
+        return this.user.save()
+    })
+    .catch((err) => {
+        throw err
+    })
 })
 
 quizSchema.set('toJSON', {

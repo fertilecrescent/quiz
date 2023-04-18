@@ -1,25 +1,25 @@
 const mongoose = require('mongoose')
 
 const questionSchema = new mongoose.Schema({
-    type: String,
+    name: String,
     choices: [{
-        type: String,
-        default: []
+        type: String
     }],
     answer: String,
     quiz: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Quiz'
+        ref: 'Quiz',
+        required: true
     }
 })
 
-questionSchema.methods.isMultipleChoice = () => {
+questionSchema.methods.isMultipleChoice = function() {
     if (this.choices.length > 1) {return true}
     else {return false}
 }
 
 questionSchema.pre('save', function() {
-    if (this.isMultipleChoice() && !this.choices.include(this.answer)) {
+    if (this.isMultipleChoice() && !this.choices.includes(this.answer)) {
         throw new Error('For multiple choice questions, the answer must be included in the choices')
     }
 })

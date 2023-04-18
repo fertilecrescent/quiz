@@ -18,15 +18,19 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
-userSchema.pre('deleteOne', async function() {
+userSchema.pre('deleteOne', {document: true, query: false}, async function(x) {
     await this.populate('quizzes')
-
     const unpublishedIds = this.quizzes
     .filter((quiz) => quiz.published == false)
     .map((quiz) => quiz._id)
 
-    await Quiz.deleteMany({_id: {'&in': unpublishedIds}})
-    await Question.deleteMany({quiz: {'&in': unpublishedIds}})
+    await Quiz.deleteMany({_id: {'$in': unpublishedIds}})
+    console.log(unpublishedIds, 'unpublishedIds')
+    const questions = await Question.find({})
+    for (let q of questions) {
+        console.log(q.quiz, 'q.quiz')
+    }
+    await Question.deleteMany({quiz: {'$in': unpublishedIds}})
     await QuizAttempt.deleteMany({user: this._id})
 })
 
